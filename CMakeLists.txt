@@ -1,0 +1,285 @@
+cmake_minimum_required(VERSION 3.14)
+## 设置项目名称
+set(PROJECT_NAME QTWidgetAndLib)
+## 设置项目版本号
+set(PROJECT_VERSION 0.1)
+
+############################### 参数设置区 #################################
+### 工程源文件设置 ### 
+set(PROJECT_SOURCES
+    main.cpp
+    QTWidgetAndLib.cpp
+    QTWidgetAndLib.h
+    QTWidgetAndLib.ui
+    QTWidgetAndLib.qrc
+)
+############################### QT 设置区 #####################################
+##### QT 版本 5
+set(QT_VERSION_5 true)
+
+#### QT 版本 6
+set(QT_VERSION_6 false)
+
+#### QT 核心模块
+set(THIS_QT_CORE Core Widgets Network)
+
+#### QT5 核心库
+if(QT_VERSION_5)
+    set(THIS_QT_CORE_LIB Qt5::Core Qt5::Widgets Qt5::Network)
+endif()
+
+#### QT6 核心库
+if(QT_VERSION_6)
+    set(THIS_QT_CORE_LIB Qt6::Core)
+endif()
+### 用于参数设置，根据自己的工程情况进行修改 ###
+if(WIN32)
+    ### windows 环境下 exe 输出路径设置 ###
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/out/build")
+    ### 三方库 头文件的 输出路径设置 ###
+    set(CMAKE_LIBRARY_INCLUDE_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/include")
+
+    ### 创建输出目录 ###
+    make_directory(${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    make_directory(${CMAKE_LIBRARY_INCLUDE_OUTPUT_DIRECTORY})
+
+else(UNIX)
+    ### linux 环境下 exe 输出路径设置 ###
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/out/build")
+    ### 三方库 头文件的 输出路径设置 ###
+    set(CMAKE_LIBRARY_INCLUDE_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/include")
+
+    ### 创建输出目录 ###
+    make_directory(${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    make_directory(${CMAKE_LIBRARY_INCLUDE_OUTPUT_DIRECTORY})
+endif()
+
+### 设置是从外部目录导入还是从运行目录导入###
+# 默认从运行目录导入#
+set(SET_LINK_INCLUE_DIR_THIS ON)
+
+
+######################## 添加动态库 按照模板添加即可 #######################
+###############################模板 - 动态库################################
+
+#### 设置局部变量 用于存储 动态库的路径####
+#### 编译环境分为 window 与 linux 请根据自己的环境设置 ####
+
+############################# windows 环境 #########################################
+#### 动态库路径设置 dll \ lib####
+
+#### DYNAMIC_LIB_DIR 是动态库 LIB 的路径 ####
+#### 这里只需要将动态库文件路径加入即可 ####
+set(WIN32_DYNAMIC_LIB_DIR
+    "D:/Soft/AtamiLib/CommunicationModule/Lib/"
+)
+
+#### 动态库 DLL 的路径 ####
+#### 若存储路径和LIB 路径不同 请设置 ####
+set(WIN32_DYNAMIC_DLL_DIR 
+    #"/home/Test11/lib/"
+)
+#### 动态库头文件 h 路径设置 ####
+#### 这里只需要将动态库 头文件 路径加入即可 ####
+set(WIN32_DYNAMIC_INCLUDE_DIR 
+"D:/Soft/AtamiLib/CommunicationModule/include/"
+
+)
+
+
+
+################################# linux 环境 ###############################
+#### 动态库路径设置so ####
+set(LINUX_DYNAMIC_SO_DIR
+    "/home/user01/CommunicationModule/Lib/"
+)
+
+#### 动态库头文件 h 路径设置 ####
+#### 这里只需要将动态库 头文件 路径加入即可 ####
+set(LINUX_DYNAMIC_INCLUDE_DIR 
+    "/home/user01/CommunicationModule/Include/"
+)
+
+######################## 参数检查 ###################
+
+#### 检查文件路径是否存在 ####
+if(WIN32)
+    foreach(var IN ITEMS ${WIN32_DYNAMIC_LIB_DIR} ${WIN32_DYNAMIC_DLL_DIR} ${WIN32_DYNAMIC_INCLUDE_DIR})
+        if(NOT EXISTS ${var})
+            message(FATAL_ERROR "${var} 不存在，请检查路径是否正确")
+        endif()
+    endforeach()
+else()
+    foreach(var IN ITEMS ${LINUX_DYNAMIC_SO_DIR} ${LINUX_DYNAMIC_INCLUDE_DIR})
+        if(NOT EXISTS ${var})
+            message(FATAL_ERROR "${var} 不存在，请检查路径是否正确")
+        endif()
+    endforeach()
+endif()
+
+################################################## 功能区 ##################################
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+## 设置 工程名称与版本号
+project(${PROJECT_NAME} VERSION ${PROJECT_VERSION} LANGUAGES CXX)
+############################################### 文件拷贝设置 ###########################################
+
+### 拷贝动态库到运行目录 ###
+if(WIN32)
+    foreach(var IN ITEMS ${WIN32_DYNAMIC_LIB_DIR} ${WIN32_DYNAMIC_DLL_DIR})
+        file(COPY ${var} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    endforeach()
+else(UNIX)
+    foreach(var IN ITEMS ${LINUX_DYNAMIC_SO_DIR})
+        file(COPY ${var} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    endforeach()
+endif()
+### 拷贝动态库头文件到运行目录 ###
+if(WIN32)
+    foreach(var IN ITEMS ${WIN32_DYNAMIC_INCLUDE_DIR})
+        file(COPY ${var} DESTINATION ${CMAKE_LIBRARY_INCLUDE_OUTPUT_DIRECTORY})
+    endforeach()
+else(UNIX)
+    foreach(var IN ITEMS ${LINUX_DYNAMIC_INCLUDE_DIR})
+    message(STATUS "CMAKE_LIBRARY_INCLUDE_OUTPUT_DIRECTORY: ${CMAKE_LIBRARY_INCLUDE_OUTPUT_DIRECTORY}")
+    message(STATUS "LINUX_DYNAMIC_INCLUDE_DIR: ${LINUX_DYNAMIC_INCLUDE_DIR}")
+        file(COPY ${var} DESTINATION ${CMAKE_LIBRARY_INCLUDE_OUTPUT_DIRECTORY})
+    endforeach()
+endif()
+
+if(WIN32)
+    foreach(var IN ITEMS ${WIN32_DYNAMIC_LIB_DIR})
+        ### 查询动态库文件 ###
+        file(COPY ${var} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    endforeach()
+else(LINUX)
+    foreach(var IN ITEMS ${LINUX_DYNAMIC_SO_DIR})
+        ### 查询动态库文件 ###
+        file(COPY ${var} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    endforeach()
+endif()
+
+##################################### 动态库头文件路径 #####################################
+if(WIN32)
+    ### 动态库头文件路径设置 ###
+    if(SET_LINK_INCLUE_DIR_THIS)
+        ### 从拷贝的头文件路径中设置 即运行目录的头文件路径 ###
+        include_directories(${CMAKE_LIBRARY_INCLUDE_OUTPUT_DIRECTORY})
+    else()
+        ### 从外部目录设置 即外部库的头文件路径 ###
+        foreach(var IN ITEMS ${WIN32_DYNAMIC_INCLUDE_DIR})
+            include_directories(${var})
+        endforeach()
+    endif()
+else(LINUX)
+    if(SET_LINK_INCLUE_DIR_THIS)
+        ### 从拷贝的头文件路径中设置 即运行目录的头文件路径 ###
+        include_directories(${CMAKE_LIBRARY_INCLUDE_OUTPUT_DIRECTORY})
+    else()
+        ### 从外部目录设置 即外部库的头文件路径 ###
+        foreach(var IN ITEMS ${LINUX_DYNAMIC_INCLUDE_DIR})
+            include_directories(${var})
+        endforeach()
+    endif()
+endif()
+
+
+##################################### 动态库路径设置 #####################################
+if(WIN32)
+    if(SET_LINK_INCLUE_DIR_THIS)
+        ### 从拷贝的动态库路径中设置 即运行目录的动态库路径 ###
+        file(GLOB_RECURSE WIN32_DYNAMIC_LIB_FILES ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} "**/*.lib")
+        ### 动态库文件加入链接目录 ###
+        link_directories(${WIN32_DYNAMIC_LIB_FILES})
+    else()
+        ### 从外部目录设置 即外部库的动态库路径 ###
+        foreach(var IN ITEMS ${WIN32_DYNAMIC_LIB_DIR})
+            ### 查询动态库文件 ###
+            file(GLOB_RECURSE WIN32_DYNAMIC_LIB_FILES ${var} "**/*.lib")
+             ### 动态库文件加入链接目录 ###
+            link_directories(${WIN32_DYNAMIC_LIB_FILES})
+             ### 调试信息 ###
+            message(STATUS "WIN32_DYNAMIC_LIB_FILES: ${WIN32_DYNAMIC_LIB_FILES}")
+        endforeach()
+    endif()
+else(LINUX)
+    if(SET_LINK_INCLUE_DIR_THIS)
+        ### 从拷贝的动态库路径中设置 即运行目录的动态库路径 ###
+        file(GLOB_RECURSE LINUX_DYNAMIC_SO_FILES ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} "**/*.so")
+        ### 动态库文件加入链接目录 ###
+        link_directories(${LINUX_DYNAMIC_SO_FILES})
+    else()
+        ### 从外部目录设置 即外部库的动态库路径 ###
+        foreach(var IN ITEMS ${LINUX_DYNAMIC_SO_DIR})
+            ### 查询动态库文件 ###
+            file(GLOB_RECURSE LINUX_DYNAMIC_SO_FILES ${var} "**/*.so")
+            ### 动态库文件加入链接目录 ###
+            link_directories(${LINUX_DYNAMIC_SO_FILES})
+            ### 调试信息 ###
+            message(STATUS "LINUX_DYNAMIC_SO_FILES: ${LINUX_DYNAMIC_SO_FILES}")
+        endforeach()
+    endif()
+endif()
+
+
+################################ QT设置 ################################
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS ${THIS_QT_CORE})
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS ${THIS_QT_CORE})
+
+
+
+############################### 使用QT生成可执行文件 #########################
+if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+    qt_add_executable(${PROJECT_NAME}
+        MANUAL_FINALIZATION
+        ${PROJECT_SOURCES}
+    )
+else()
+    add_executable(
+        ${PROJECT_NAME}
+        ${PROJECT_SOURCES}
+    )
+endif()
+
+
+######################## 链接库设置 ######################
+if(WIN32)
+    target_link_libraries(QTWidgetAndLib PRIVATE 
+                        ${THIS_QT_CORE_LIB}
+                        ${WIN32_DYNAMIC_LIB_FILES}
+                        )
+else(UNIX)
+    target_link_libraries(QTWidgetAndLib PRIVATE 
+                        ${THIS_QT_CORE_LIB}
+                        ${LINUX_DYNAMIC_SO_FILES}
+                        )
+endif()
+
+
+######################### 其他设置 ###############
+# 根据QT版本设置MACOSX_BUNDLE_GUI_IDENTIFIER选项
+if(${QT_VERSION} VERSION_LESS 6.1.0)
+  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.QTWidgetAndLib)
+endif()
+
+# 设置QTWidgetAndLib目标的属性
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    ${BUNDLE_ID_OPTION}
+    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+    MACOSX_BUNDLE TRUE
+    WIN32_EXECUTABLE TRUE
+)
+
+# 如果QT主版本为6，则调用qt_finalize_executable函数
+if(QT_VERSION_MAJOR EQUAL 6)
+    qt_finalize_executable(QTWidgetAndLib)
+endif()
+
