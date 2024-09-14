@@ -4,6 +4,15 @@ set(PROJECT_NAME QTWidgetAndLib)
 ## 设置项目版本号
 set(PROJECT_VERSION 0.1)
 
+##  判断是否为debug模式
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(STATUS "Debug Mode")
+    set(DEBUG_MODE ON)
+else()
+    message(STATUS "Release Mode")
+    set(DEBUG_MODE OFF)
+endif()
+
 ############################### 参数设置区 #################################
 ### 工程源文件设置 ### 
 set(PROJECT_SOURCES
@@ -70,35 +79,67 @@ set(SET_LINK_INCLUE_DIR_THIS ON)
 
 #### DYNAMIC_LIB_DIR 是动态库 LIB 的路径 ####
 #### 这里只需要将动态库文件路径加入即可 ####
-set(WIN32_DYNAMIC_LIB_DIR
-    "D:/Soft/AtamiLib/CommunicationModule/Lib/"
-)
 
-#### 动态库 DLL 的路径 ####
-#### 若存储路径和LIB 路径不同 请设置 ####
-set(WIN32_DYNAMIC_DLL_DIR 
+if(DEBUG_MODE)
+    set(WIN32_DYNAMIC_LIB_DIR
+        "D:/Soft/AtamiLib/CommunicationModule/Lib/Debug/"
+        )
+    #### 动态库 DLL 的路径 ####
+    #### 若存储路径和LIB 路径不同 请设置 ####
+    set(WIN32_DYNAMIC_DLL_DIR 
     #"/home/Test11/lib/"
-)
-#### 动态库头文件 h 路径设置 ####
-#### 这里只需要将动态库 头文件 路径加入即可 ####
-set(WIN32_DYNAMIC_INCLUDE_DIR 
-"D:/Soft/AtamiLib/CommunicationModule/include/"
+        )
+    #### 动态库头文件 h 路径设置 ####
+    #### 这里只需要将动态库 头文件 路径加入即可 ####
+    set(WIN32_DYNAMIC_INCLUDE_DIR 
+        "D:/Soft/AtamiLib/CommunicationModule/include/"
+        )
+else()
 
-)
+    set(WIN32_DYNAMIC_LIB_DIR
+        "D:/Soft/AtamiLib/CommunicationModule/Lib/Release/"
+        )
+    #### 动态库 DLL 的路径 ####
+    #### 若存储路径和LIB 路径不同 请设置 ####
+    set(WIN32_DYNAMIC_DLL_DIR 
+        #"/home/Test11/lib/"
+    )
+    #### 动态库头文件 h 路径设置 ####
+    #### 这里只需要将动态库 头文件 路径加入即可 ####
+    set(WIN32_DYNAMIC_INCLUDE_DIR 
+        "D:/Soft/AtamiLib/CommunicationModule/include/"
+    )
+endif()
+
+
+
 
 
 
 ################################# linux 环境 ###############################
 #### 动态库路径设置so ####
-set(LINUX_DYNAMIC_SO_DIR
-    "/home/user01/CommunicationModule/Lib/"
-)
-
-#### 动态库头文件 h 路径设置 ####
-#### 这里只需要将动态库 头文件 路径加入即可 ####
-set(LINUX_DYNAMIC_INCLUDE_DIR 
+if(DEBUG_MODE)
+    set(LINUX_DYNAMIC_SO_DIR
+        "/home/user01/CommunicationModule/Lib/Debug/"
+        )
+        #### 动态库头文件 h 路径设置 ####
+        #### 这里只需要将动态库 头文件 路径加入即可 ####
+    set(LINUX_DYNAMIC_INCLUDE_DIR 
     "/home/user01/CommunicationModule/Include/"
-)
+        )
+
+else()
+    set(LINUX_DYNAMIC_SO_DIR
+        "/home/user01/CommunicationModule/Lib/Release/"
+        )
+        #### 动态库头文件 h 路径设置 ####
+        #### 这里只需要将动态库 头文件 路径加入即可 ####
+     set(LINUX_DYNAMIC_INCLUDE_DIR 
+         "/home/user01/CommunicationModule/Include/"
+        )
+endif()
+
+
 
 ######################## 参数检查 ###################
 
