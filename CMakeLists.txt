@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
+### 修改编译模式时，需要清除缓存防止包含旧的lib库
+
 ## 设置项目名称
 set(PROJECT_NAME QTWidgetAndLib)
 ## 设置项目版本号
@@ -7,9 +9,15 @@ set(PROJECT_VERSION 0.1)
 ##  判断是否为debug模式
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message(STATUS "Debug Mode")
+
+    ### 自定义安装路径
+    set(CMAKE_INSTALL_PREFIX "D:/test_dll/QTWidgetAndLib/out/install/Debug/")
     set(DEBUG_MODE ON)
 else()
     message(STATUS "Release Mode")
+
+    ### 自定义安装路径
+    set(CMAKE_INSTALL_PREFIX "D:/test_dll/QTWidgetAndLib/out/install/Release/")
     set(DEBUG_MODE OFF)
 endif()
 
@@ -48,6 +56,10 @@ if(WIN32)
     ### 三方库 头文件的 输出路径设置 ###
     set(CMAKE_LIBRARY_INCLUDE_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/include")
 
+    ### QT 的安装路径设置 ###
+    set(QT_INSTALL_DIR "D:/Soft/QT/5.14.2/msvc2017_64/")
+    ### 动态库的输出路径设置 ###
+
     ### 创建输出目录 ###
     make_directory(${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
     make_directory(${CMAKE_LIBRARY_INCLUDE_OUTPUT_DIRECTORY})
@@ -57,7 +69,9 @@ else(UNIX)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/out/build")
     ### 三方库 头文件的 输出路径设置 ###
     set(CMAKE_LIBRARY_INCLUDE_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/include")
-
+    
+    ### QT 的安装路径设置 ###
+    set(QT_INSTALL_DIR "xxxxx")
     ### 创建输出目录 ###
     make_directory(${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
     make_directory(${CMAKE_LIBRARY_INCLUDE_OUTPUT_DIRECTORY})
@@ -83,21 +97,24 @@ set(SET_LINK_INCLUE_DIR_THIS ON)
 if(DEBUG_MODE)
     set(WIN32_DYNAMIC_LIB_DIR
         "D:/Soft/AtamiLib/CommunicationModule/Lib/Debug/"
+        "D:/Soft/opencv/Debug/"
         )
     #### 动态库 DLL 的路径 ####
     #### 若存储路径和LIB 路径不同 请设置 ####
     set(WIN32_DYNAMIC_DLL_DIR 
-    #"/home/Test11/lib/"
+       #"D:/Soft/opencv/build/x64/vc16/bin/"
         )
     #### 动态库头文件 h 路径设置 ####
     #### 这里只需要将动态库 头文件 路径加入即可 ####
     set(WIN32_DYNAMIC_INCLUDE_DIR 
         "D:/Soft/AtamiLib/CommunicationModule/include/"
+        "D:/Soft/opencv/build/include/"
         )
 else()
 
     set(WIN32_DYNAMIC_LIB_DIR
         "D:/Soft/AtamiLib/CommunicationModule/Lib/Release/"
+        "D:/Soft/opencv/Release/"
         )
     #### 动态库 DLL 的路径 ####
     #### 若存储路径和LIB 路径不同 请设置 ####
@@ -108,6 +125,7 @@ else()
     #### 这里只需要将动态库 头文件 路径加入即可 ####
     set(WIN32_DYNAMIC_INCLUDE_DIR 
         "D:/Soft/AtamiLib/CommunicationModule/include/"
+        "D:/Soft/opencv/build/include/"
     )
 endif()
 
@@ -174,12 +192,14 @@ project(${PROJECT_NAME} VERSION ${PROJECT_VERSION} LANGUAGES CXX)
 
 ### 拷贝动态库到运行目录 ###
 if(WIN32)
+    ### 拷贝动态库到运行目录/bin  hmy 内容修正###  
     foreach(var IN ITEMS ${WIN32_DYNAMIC_LIB_DIR} ${WIN32_DYNAMIC_DLL_DIR})
-        file(COPY ${var} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+        file(COPY ${var} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib)
     endforeach()
 else(UNIX)
+    ### 拷贝动态库到运行目录/lib 
     foreach(var IN ITEMS ${LINUX_DYNAMIC_SO_DIR})
-        file(COPY ${var} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+        file(COPY ${var} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib)
     endforeach()
 endif()
 ### 拷贝动态库头文件到运行目录 ###
@@ -323,4 +343,148 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(QTWidgetAndLib)
 endif()
+########################################### 安装设置 ###################################
+
+### 设置安装路径 ###
+install(TARGETS ${PROJECT_NAME}
+    RUNTIME DESTINATION bin
+    BUNDLE DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    INCLUDES DESTINATION include
+)
+if(WIN32)
+    if(DEBUG_MODE STREQUAL "Debug")
+        # 安装 .lib 和 .dll 文件
+        install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/
+            DESTINATION lib
+            FILES_MATCHING PATTERN "*.lib"
+        )
+        install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/
+            DESTINATION bin
+            FILES_MATCHING PATTERN "*.dll"
+        )
+        
+        # 安装 Qt 库
+        install(DIRECTORY ${QT_INSTALL_DIR}bin/
+            DESTINATION ${QT_INSTALL_LIB_DIR}
+            FILES_MATCHING PATTERN "*.dll"
+        )
+
+        # 安装 Qt 平台 #直接拷贝文件夹
+        install(DIRECTORY ${QT_INSTALL_DIR}/plugins/
+            DESTINATION bin
+            FILES_MATCHING PATTERN "*"
+        )
+    else()
+        # 安装 .lib 和 .dll 文件
+        install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/
+            DESTINATION lib
+            FILES_MATCHING PATTERN "*.lib"
+        )
+        install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/
+            DESTINATION bin
+            FILES_MATCHING PATTERN "*.dll"
+        )
+
+        # 安装 Qt 库
+        install(DIRECTORY ${QT_INSTALL_DIR}/bin/
+            DESTINATION bin
+            FILES_MATCHING PATTERN "*.dll"
+        )
+        # 安装 Qt 平台 #直接拷贝文件夹
+        install(DIRECTORY ${QT_INSTALL_DIR}/plugins/
+            DESTINATION bin
+            FILES_MATCHING PATTERN "*"
+        )
+    endif()
+endif()
+
+if(UNIX)
+    if(DEBUG_MODE STREQUAL "Debug")
+        # 安装 .so 文件
+        install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/
+            DESTINATION lib
+            FILES_MATCHING PATTERN "*.so"
+        )
+        # 安装 Qt 库
+        install(DIRECTORY ${QT_INSTALL_DIR}/lib/
+            DESTINATION lib
+            FILES_MATCHING PATTERN "*.so*"
+        )
+        # 安装 Qt 平台 #直接拷贝文件夹
+        install(DIRECTORY ${QT_INSTALL_DIR}/plugins/
+            DESTINATION lib
+            FILES_MATCHING PATTERN "*"
+        )
+    else()
+        # 安装 .so 文件
+        install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/
+            DESTINATION lib
+            FILES_MATCHING PATTERN "*.so"
+        )
+        # 安装 Qt 库
+        install(DIRECTORY ${QT_INSTALL_DIR}/lib/
+            DESTINATION lib
+            FILES_MATCHING PATTERN "*.so*"
+        )
+        # 安装 Qt 平台 #直接拷贝文件夹
+        install(DIRECTORY ${QT_INSTALL_DIR}/plugins/
+            DESTINATION lib
+            FILES_MATCHING PATTERN "*"
+        )
+    endif()
+endif()
+### 设置安装路径 ###
+install(DIRECTORY ${CMAKE_LIBRARY_INCLUDE_OUTPUT_DIRECTORY}/
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.h"
+)
+### 设置安装路径 ###
+install(DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/
+    DESTINATION bin
+    FILES_MATCHING PATTERN "*.dll"
+)
+
+
+### 安装其他三方库 ###
+if(WIN32)
+    ### 查询 WIN32_DYNAMIC_LIB_DIR 里有多个路径 ###
+    foreach(var IN ITEMS ${WIN32_DYNAMIC_LIB_DIR})
+        install(DIRECTORY ${var}/
+            DESTINATION lib
+            FILES_MATCHING PATTERN "**/*.lib"
+         )
+    endforeach()
+    ### 查询 WIN32_DYNAMIC_DLL_DIR 里有多个路径 ###
+    foreach(var IN ITEMS ${WIN32_DYNAMIC_DLL_DIR})
+        install(DIRECTORY ${var}/
+            DESTINATION bin
+            FILES_MATCHING PATTERN "**/*.dll"
+         )
+    endforeach()
+    ### 查询 WIN32_DYNAMIC_INCLUDE_DIR 里有多个路径 ###
+    foreach(var IN ITEMS ${WIN32_DYNAMIC_INCLUDE_DIR})
+        install(DIRECTORY ${var}/
+            DESTINATION include
+            FILES_MATCHING PATTERN "*.h"
+         )
+    endforeach()
+else(UNIX)
+    ### 查询 LINUX_DYNAMIC_SO_DIR 里有多个路径 ###
+    foreach(var IN ITEMS ${LINUX_DYNAMIC_SO_DIR})
+        install(DIRECTORY ${var}/
+            DESTINATION lib
+            FILES_MATCHING PATTERN "**/*.so"
+         )
+    endforeach()
+    ### 查询 LINUX_DYNAMIC_INCLUDE_DIR 里有多个路径 ###
+    foreach(var IN ITEMS ${LINUX_DYNAMIC_INCLUDE_DIR})
+        install(DIRECTORY ${var}/
+            DESTINATION include
+            FILES_MATCHING PATTERN "*.h"
+         )
+    endforeach()
+endif()
+
 
