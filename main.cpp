@@ -15,9 +15,9 @@ int main(int argc, char *argv[])
     if (!lib.load()) {
         qDebug() << "Failed to load library" << endl;
         return 1;
-    }
-    typedef int (*addTest)(int, int);
-    addTest addTestFunc = (addTest)lib.resolve("addTest");
+    }                                                         
+    typedef int (*addTest888)(int, int);
+    addTest888 addTestFunc = (addTest888)lib.resolve("addTest");
     if (!addTestFunc) {
         qDebug() << "Failed to resolve function" << endl;
         return 1;
